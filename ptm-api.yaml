@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: Project Time Manager API
+  description: Description of Project Time Manager API
+  version: 2.0.0
+
+servers:
+  - url: http://localhost:27727
+    description: Typically run locally on the host machine
+
+paths:
+  /activities:
+    get:
+      summary: Access user activities
+      operationId: getActivities
+      tags:
+        - activities
+      security:
+        - BasicAuth: []
+      responses:
+        '200':
+          description: List all activities of the user 
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activities"
+        '401':
+          description: User not authorized
+          
+    post:
+      summary: Create a new Activity
+      operationId: addActivity
+      tags:
+        - activities
+      security:
+        - BasicAuth: []
+      requestBody:
+        description: The data of the new Activity
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Activity"
+      responses:    
+        '201':
+          description: The uri of the freshly created activity 
+          content: 
+            test/plain; charset=utf-8:
+              schema:
+                type: string
+                format: uri
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+          
+  /activities/{activityId}:
+    get:
+      summary: Access single user activity
+      operationId: getActivity
+      tags:
+        - activities
+      security:
+        - BasicAuth: []
+      parameters: 
+        - name: activityId
+          description: id of the requested activity
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested activity 
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+    patch:
+      summary: Change an existing activity
+      operationId: changeActivity
+      tags:
+        - activities
+      security:
+        - BasicAuth: []
+      parameters: 
+        - name: activityId
+          description: id of the requested activity
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: The data of the new Activity
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Activity"
+      responses:
+        '200':
+          description: Activity changed, returns the resulting activity 
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+      
+components:
+  schemas:
+    Activity:
+      type: 'object'
+      required:
+        - projectName
+        - activityName
+        - projectId
+        - activityId
+        - hidden
+      properties:
+        projectName:
+          type: string
+        activityName:
+          type: string
+        projectId:
+          type: string
+        activityId:
+          type: string
+        hidden:
+          type: boolean
+    Activities:
+      type: array
+      items:
+        $ref: "#/components/schemas/Activity"
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+      
