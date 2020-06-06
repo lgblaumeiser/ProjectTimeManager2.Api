@@ -6,12 +6,15 @@ info:
 
 servers:
   - url: http://localhost:27727
-    description: Typically run locally on the host machine
+    description: Project time manager currently runs typically locally on the host machine
 
 paths:
+
+# Activity API
+
   /activities:
     get:
-      summary: Access user activities
+      summary: Return all activities of the user given by the authentication
       operationId: getActivities
       tags:
         - activities
@@ -19,48 +22,46 @@ paths:
         - BasicAuth: []
       responses:
         '200':
-          description: List all activities of the user 
+          description: List of all activities of the user 
           content: 
             application/json:
               schema:
-                $ref: "#/components/schemas/Activities"
+                $ref: '#/components/schemas/Activities'
+        '204':
+          $ref: '#/components/responses/NoContent'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+          
           
     post:
-      summary: Create a new activity
+      summary: Create a new activity for the user given by the authentication
       operationId: addActivity
       tags:
         - activities
       security:
         - BasicAuth: []
       requestBody:
-        description: The data of the new activity
+        description: The data of the new activity. All elements of the data structure are mandatory
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Activity"
-      responses:    
+              $ref: '#/components/schemas/NewActivityData'
+      responses:
         '201':
-          description: The uri of the freshly created activity 
-          content: 
-            test/plain; charset=utf-8:
-              schema:
-                type: string
-                format: uri
+          $ref: '#/components/responses/Created'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
           
   /activities/{activityId}:
     get:
-      summary: Access single user activity
+      summary: Access an activity by id, if the resource belongs to user
       operationId: getActivity
       tags:
         - activities
@@ -80,17 +81,18 @@ paths:
           content: 
             application/json:
               schema:
-                $ref: "#/components/schemas/Activity"
+                $ref: '#/components/schemas/Activity'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
     patch:
-      summary: Change an existing activity
+      summary: Change an existing activity, if the resource belongs to the user
       operationId: changeActivity
       tags:
         - activities
@@ -105,27 +107,25 @@ paths:
             type: integer
             format: int64
       requestBody:
-        description: The data of the new Activity
+        description: The data for the change, all fields are optional, at least one must be changed
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Activity"
+              $ref: '#/components/schemas/ChangeActivityData'
       responses:
-        '200':
-          description: Activity changed, returns the resulting activity 
-          content: 
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Activity"
+        '204':
+          $ref: '#/components/responses/SuccessfullyChanged'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# Booking API
 
   /bookings:
     get:
@@ -156,49 +156,49 @@ paths:
           content: 
             application/json:
               schema:
-                $ref: "#/components/schemas/Bookings"
+                $ref: '#/components/schemas/Bookings'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
     post:
-      summary: Create a new booking
+      summary: Create a new booking for the authenticated user
       operationId: addBooking
       tags:
         - bookings
       security:
         - BasicAuth: []
       requestBody:
-        description: The data of the new booking
+        description: The data of the new booking, bookingday, starttime and activity are mandatory, endtime and comment are optional
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Booking"
-      responses:    
+              $ref: '#/components/schemas/BookingData'
+      responses:
         '201':
-          description: The uri of the freshly created activity 
-          content: 
-            test/plain; charset=utf-8:
-              schema:
-                type: string
-                format: uri
+          $ref: '#/components/responses/Created'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /bookings/{bookingId}:
     get:
-      summary: Access a booking
+      summary: Access a booking, if the resource belongs to the user
       operationId: getBooking
       tags:
         - bookings
       security:
         - BasicAuth: []
-      parameters: 
+      parameters:
         - name: bookingId
           description: id of the requested booking
           in: path
@@ -212,17 +212,18 @@ paths:
           content: 
             application/json:
               schema:
-                $ref: "#/components/schemas/Booking"
+                $ref: '#/components/schemas/Booking'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
     patch:
-      summary: Change an existing booking
+      summary: Change an existing booking, if the resource belongs to the user
       operationId: changeBooking
       tags:
         - bookings
@@ -237,29 +238,60 @@ paths:
             type: integer
             format: int64
       requestBody:
-        description: The data to change in the booking
+        description: The data to change in the booking, all fields are optional, at least one field must be changed
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Booking"
+              $ref: '#/components/schemas/BookingData'
       responses:
-        '200':
-          description: Booking changed, returns the resulting booking 
-          content: 
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Booking"
+        '204':
+          $ref: '#/components/responses/SuccessfullyChanged'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Split the booking, i.e., shorten the booking and create a second booking after the break, returns the uri of the created booking
+      operationId: addBreak
+      tags:
+        - bookings
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: bookingId
+          description: id of the requested booking
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: The break data to be used in the split, breakstart is mandatory, breaklength is the length in minutes, it defaults to 30 minutes and is optional
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddBreak'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
     delete:
-      summary: Delete a booking
+      summary: Delete a booking, if the resource belongs to the user
       operationId: deleteBooking
       tags:
         - bookings
@@ -274,16 +306,18 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
-          description: Booking deleted
+        '204':
+          $ref: '#/components/responses/SuccessfullyDeleted'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# Analysis API
 
   /analysis/{analyzer}:
     get:
@@ -321,22 +355,21 @@ paths:
           content: 
             application/json:
               schema:
-                $ref: "#/components/schemas/Analysis"
+                $ref: '#/components/schemas/Analysis'
+        '204':
+          $ref: '#/components/responses/NoContent'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# User API
   
   /users:
     post:
-      summary: Register a new user
-      description: >
-        A user is has a username and an email. Security is provided by a password. For resetting the password
-        a user record contains a question and an answer which is needed to get a temporarily created password.
+      summary: Register a new user, needs no authentication
       operationId: registerUser
       tags:
         - users
@@ -346,27 +379,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
-      responses:    
+              $ref: '#/components/schemas/NewUserData'
+      responses:
         '201':
-          description: The user has been created, the returned user contains username, email and question.
-          content: 
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
+          $ref: '#/components/responses/Created'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     put:
-      summary: Reset the password of the user
-      description: >
-        The method checks the incoming data, if the username and the answer are matching each other,
-        a temporary password is created and returned. The user can change the password by the
-        'user' patch operation.
+      summary: Reset the password of the user, authentication provided by answer to stored question
       operationId: resetPassword
       tags:
         - users
@@ -376,7 +399,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: "#/components/schemas/ResetPassword"
       responses:    
         '200':
           description: The users password has been changed, the new password is returned
@@ -386,13 +409,13 @@ paths:
                 type: string
                 format: password
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          description: Answer does not match to the username
+        '500':
+          $ref: '#/components/responses/InternalError'
 
-  /users/user:
+  /users/profile:
     get:
       summary: Get the email and question of your user, reference done via authenticated user
       operationId: getUser
@@ -402,19 +425,16 @@ paths:
         - BasicAuth: []
       responses:
         '200':
-          description: The user data as a user component, but only with username, email and question filled 
+          description: The user data, but only username, email and question
           content: 
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-        '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
     patch:
       summary: Change properties of the user, except username, this is unchangeable
       operationId: changeUser
@@ -423,27 +443,22 @@ paths:
       security:
         - BasicAuth: []
       requestBody:
-        description: The data to change for the user
+        description: The data to change for the user, all fields are optional, at least one has to be changed
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
-      responses:    
-        '200':
-          description: The user has been changed, the returned user contains username, email and question.
-          content: 
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
+              $ref: "#/components/schemas/ChangeUserData"
+      responses:
+        '204':
+          $ref: '#/components/responses/SuccessfullyChanged'
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
     delete:
       summary: Delete a user and all its data from the database
       operationId: deleteUser
@@ -452,16 +467,14 @@ paths:
       tags:
         - users
       responses:
-        '200':
-          description: Booking deleted
-        '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+        '204':
+          $ref: '#/components/responses/SuccessfullyDeleted'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# Infrastructure API
 
   /backup:
     get:
@@ -479,14 +492,12 @@ paths:
               schema:
                 type: string
                 format: binary
-        '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     put:
       summary: Restore a backup and replace existing database
@@ -504,20 +515,20 @@ paths:
               type: string
               format: binary
       responses:
-        '200':
-          description: The restore of the data was successful
+        '204':
+          description: Database restored successfully, old data deleted
         '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: User not authorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
   
   /licenses:
     get:
-      summary: Returns an attribution information on the used Open Source Software
+      summary: Returns the attribution information on the used Open Source Software
       operationId: license
       tags:
         - legal
@@ -528,18 +539,69 @@ paths:
             text/plain; charset=utf-8:
               schema:
                 type: string
-        '400':
-          description: Error in execution, returns the error message of the server
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
-        '401':
-          description: User not authorized
+        '500':
+          $ref: '#/components/responses/InternalError'
 
 components:
+  responses:
+    Created:
+      description: Resource created successfully, return the location uri of the created resource in response header
+    SuccessfullyChanged:
+      description: Resource changed successfully
+    SuccessfullyDeleted:
+      description: Resource deleted successfully
+    NoContent:
+      description: The requested collection is empty
+    Unauthorized:
+      description: User not authorized
+    BadRequest:
+      description: Bad data given to the request, returns the error message of the server
+      content:
+        text/plain; charset=utf-8:
+          schema:
+            type: string
+    Forbidden:
+      description: The requested resource does not belong to the authenticated user
+    AdminAccess:
+      description: Admin access needed for this operation
+    InternalError:
+      description: The request resulted in an unexpected exception, returns the error message of the server
+      content:
+        text/plain; charset=utf-8:
+          schema:
+            type: string
+      
   schemas:
     Activity:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        projectName:
+          type: string
+        activityName:
+          type: string
+        projectId:
+          type: string
+        activityId:
+          type: string
+        hidden:
+          type: boolean
+    
+    NewActivityData:
+      type: object
+      properties:
+        projectName:
+          type: string
+        activityName:
+          type: string
+        projectId:
+          type: string
+        activityId:
+          type: string
+    
+    ChangeActivityData:
       type: object
       properties:
         projectName:
@@ -552,13 +614,34 @@ components:
           type: string
         hidden:
           type: boolean
-
+    
     Activities:
       type: array
       items:
         $ref: "#/components/schemas/Activity"
 
     Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        bookingday:
+          type: string
+          format: date
+        starttime:
+          type: string
+          format: time
+        endtime:
+          type: string
+          format: time
+        activity:
+          type: integer
+          format: int64
+        comment:
+          type: string
+
+    BookingData:
       type: object
       properties:
         bookingday:
@@ -575,18 +658,22 @@ components:
           format: int64
         comment:
           type: string
+
+    Bookings:
+      type: array
+      items:
+        $ref: "#/components/schemas/Booking"
+
+    AddBreak:
+      type: object
+      properties:
         breakstart:
           type: string
           format: time
         breaklength:
           type: integer
           format: int32
-
-    Bookings:
-      type: array
-      items:
-        $ref: "#/components/schemas/Booking"
-    
+      
     Analysis:
       type: array
       items:
@@ -599,6 +686,17 @@ components:
       properties:
         username:
           type: string
+        email:
+          type: string
+          format: email
+        question:
+          type: string
+
+    NewUserData:
+      type: object
+      properties:
+        username:
+          type: string
         password:
           type: string
           format: password
@@ -606,6 +704,30 @@ components:
           type: string
           format: email
         question:
+          type: string
+        answer:
+          type: string
+          format: password
+    
+    ChangeUserData:
+      type: object
+      properties:
+        password:
+          type: string
+          format: password
+        email:
+          type: string
+          format: email
+        question:
+          type: string
+        answer:
+          type: string
+          format: password
+    
+    ResetPassword:
+      type: object
+      properties:
+        username:
           type: string
         answer:
           type: string
