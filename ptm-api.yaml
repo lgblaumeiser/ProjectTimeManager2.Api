@@ -28,14 +28,14 @@ paths:
           description: User not authorized
           
     post:
-      summary: Create a new Activity
+      summary: Create a new activity
       operationId: addActivity
       tags:
         - activities
       security:
         - BasicAuth: []
       requestBody:
-        description: The data of the new Activity
+        description: The data of the new activity
         required: true
         content:
           application/json:
@@ -72,7 +72,8 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: The requested activity 
@@ -101,7 +102,8 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
       requestBody:
         description: The data of the new Activity
         required: true
@@ -124,17 +126,421 @@ paths:
                 type: string
         '401':
           description: User not authorized
-      
+
+  /bookings:
+    get:
+      summary: Access bookings for the user of a day or a range of days
+      operationId: getBookings
+      tags:
+        - bookings
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: day
+          description: A date string, return bookings from this day on including the day
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: until
+          description: A date string, return bookings until this day excluding the day, not needed for single day requests
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of all bookings of the user within the given time frame
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bookings"
+        '401':
+          description: User not authorized
+    post:
+      summary: Create a new booking
+      operationId: addBooking
+      tags:
+        - bookings
+      security:
+        - BasicAuth: []
+      requestBody:
+        description: The data of the new booking
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Booking"
+      responses:    
+        '201':
+          description: The uri of the freshly created activity 
+          content: 
+            test/plain; charset=utf-8:
+              schema:
+                type: string
+                format: uri
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+
+  /bookings/{bookingId}:
+    get:
+      summary: Access a booking
+      operationId: getBooking
+      tags:
+        - bookings
+      security:
+        - BasicAuth: []
+      parameters: 
+        - name: bookingId
+          description: id of the requested booking
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: The requested booking 
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+    patch:
+      summary: Change an existing booking
+      operationId: changeBooking
+      tags:
+        - bookings
+      security:
+        - BasicAuth: []
+      parameters: 
+        - name: bookingId
+          description: id of the booking to change
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: The data to change in the booking
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Booking"
+      responses:
+        '200':
+          description: Booking changed, returns the resulting booking 
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+    delete:
+      summary: Delete a booking
+      operationId: deleteBooking
+      tags:
+        - bookings
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: bookingId
+          description: id of the booking to change
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Booking deleted
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+
+  /analysis/{analyzer}:
+    get:
+      summary: Get an analysis on the bookings in the given timeframe
+      operationId: runAnalysis
+      tags:
+        - analysis
+      security:
+        - BasicAuth: []
+      parameters: 
+        - name: analyzer
+          description: Name of the requested analyzer
+          in: path
+          required: true
+          schema:
+            type: string
+            format: enum
+        - name: startdate
+          description: Start day for the analysis, including the given day
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: enddate
+          description: End day for the analysis, excluding the given day
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: The requested analysis result as a string table 
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+  
+  /users:
+    post:
+      summary: Register a new user
+      description: >
+        A user is has a username and an email. Security is provided by a password. For resetting the password
+        a user record contains a question and an answer which is needed to get a temporarily created password.
+      operationId: registerUser
+      tags:
+        - users
+      requestBody:
+        description: The data of the new user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:    
+        '201':
+          description: The user has been created, the returned user contains username, email and question.
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+
+    put:
+      summary: Reset the password of the user
+      description: >
+        The method checks the incoming data, if the username and the answer are matching each other,
+        a temporary password is created and returned. The user can change the password by the
+        'user' patch operation.
+      operationId: resetPassword
+      tags:
+        - users
+      requestBody:
+        description: Username and answer for the user that wants a resetted password
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:    
+        '200':
+          description: The users password has been changed, the new password is returned
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+                format: password
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+
+  /users/user:
+    get:
+      summary: Get the email and question of your user, reference done via authenticated user
+      operationId: getUser
+      tags:
+        - users
+      security:
+        - BasicAuth: []
+      responses:
+        '200':
+          description: The user data as a user component, but only with username, email and question filled 
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+    patch:
+      summary: Change properties of the user, except username, this is unchangeable
+      operationId: changeUser
+      tags:
+        - users
+      security:
+        - BasicAuth: []
+      requestBody:
+        description: The data to change for the user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:    
+        '200':
+          description: The user has been changed, the returned user contains username, email and question.
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+    delete:
+      summary: Delete a user and all its data from the database
+      operationId: deleteUser
+      security:
+        - BasicAuth: []
+      tags:
+        - users
+      responses:
+        '200':
+          description: Booking deleted
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+
+  /backup:
+    get:
+      summary: Create a backup of the database
+      operationId: backup
+      tags:
+        - backup
+      security:
+        - BasicAuth: [ admin ]
+      responses:
+        '200':
+          description: A backup of the database data as zip file
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+
+    put:
+      summary: Restore a backup and replace existing database
+      operationId: restore
+      tags:
+        - backup
+      security:
+        - BasicAuth: [ admin ]
+      requestBody:
+        description: The data to restore in the database
+        required: true
+        content:
+          application/zip:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: The restore of the data was successful
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+  
+  /licenses:
+    get:
+      summary: Returns an attribution information on the used Open Source Software
+      operationId: license
+      tags:
+        - legal
+      responses:
+        '200':
+          description: The attribution information as text
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '400':
+          description: Error in execution, returns the error message of the server
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '401':
+          description: User not authorized
+
 components:
   schemas:
     Activity:
-      type: 'object'
-      required:
-        - projectName
-        - activityName
-        - projectId
-        - activityId
-        - hidden
+      type: object
       properties:
         projectName:
           type: string
@@ -146,10 +552,65 @@ components:
           type: string
         hidden:
           type: boolean
+
     Activities:
       type: array
       items:
         $ref: "#/components/schemas/Activity"
+
+    Booking:
+      type: object
+      properties:
+        bookingday:
+          type: string
+          format: date
+        starttime:
+          type: string
+          format: time
+        endtime:
+          type: string
+          format: time
+        activity:
+          type: integer
+          format: int64
+        comment:
+          type: string
+        breakstart:
+          type: string
+          format: time
+        breaklength:
+          type: integer
+          format: int32
+
+    Bookings:
+      type: array
+      items:
+        $ref: "#/components/schemas/Booking"
+    
+    Analysis:
+      type: array
+      items:
+        type: array
+        items:
+          type: string
+
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+        email:
+          type: string
+          format: email
+        question:
+          type: string
+        answer:
+          type: string
+          format: password
+
   securitySchemes:
     BasicAuth:
       type: http
