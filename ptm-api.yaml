@@ -257,7 +257,7 @@ paths:
           $ref: '#/components/responses/InternalError'
 
     post:
-      summary: Split the booking, i.e., shorten the booking and create a second booking after the break, returns the uri of the created booking
+      summary: Add a break to the booking by splitting it, i.e., shorten the booking and create a second booking after the break, returns the uri of the created booking
       operationId: addBreak
       tags:
         - bookings
