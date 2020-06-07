@@ -417,7 +417,7 @@ paths:
 
   /users/profile:
     get:
-      summary: Get the email and question of your user, reference done via authenticated user
+      summary: Get the email and question of a user, reference done via authenticated user
       operationId: getUser
       tags:
         - users
@@ -425,7 +425,7 @@ paths:
         - BasicAuth: []
       responses:
         '200':
-          description: The user data, but only username, email and question
+          description: The user data, except password and answer
           content: 
             application/json:
               schema:
