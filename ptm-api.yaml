@@ -395,7 +395,7 @@ paths:
           $ref: '#/components/responses/InternalError'
 
     put:
-      summary: Reset the password of the user, authentication provided by answer to stored question
+      summary: Reset the password of the user, authentication provided by answer to stored question stored in the password field of the given request body
       operationId: resetPassword
       tags:
         - users
@@ -405,7 +405,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ResetPassword"
+              $ref: "#/components/schemas/AuthenticationData"
       responses:    
         '200':
           description: The users password has been changed, the new password is returned
@@ -418,6 +418,34 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '403':
           description: Answer does not match to the username
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/authenticate
+    post:
+      summary: Authenticate a registered user by password, returns a jwt token
+      operationId: authenticateUser
+      tags:
+        - users
+      requestBody:
+        description: User and password of the user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationData'
+      responses:
+        '200':
+          description: User authenticated, required jwt token returned
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+                format: password
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          description: Given user password combination is not known
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -730,12 +758,12 @@ components:
           type: string
           format: password
     
-    ResetPassword:
+    AuthenticationData:
       type: object
       properties:
         username:
           type: string
-        answer:
+        password:
           type: string
           format: password
 
