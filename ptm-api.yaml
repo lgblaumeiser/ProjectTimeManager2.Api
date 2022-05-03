@@ -19,7 +19,14 @@ paths:
       tags:
         - activities
       security:
-        - BasicAuth: []
+        - BearerAuth: []
+      parameters:
+        - name: hidden
+          description: A boolean indicating to show all activities including the hidden ones, defaults to false
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: List of all activities of the user 
@@ -33,15 +40,14 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
-          
-          
+
     post:
       summary: Create a new activity for the user given by the authentication
       operationId: addActivity
       tags:
         - activities
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       requestBody:
         description: The data of the new activity. All elements of the data structure are mandatory
         required: true
@@ -66,7 +72,7 @@ paths:
       tags:
         - activities
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters: 
         - name: activityId
           description: id of the requested activity
@@ -97,7 +103,7 @@ paths:
       tags:
         - activities
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters: 
         - name: activityId
           description: id of the requested activity
@@ -134,7 +140,7 @@ paths:
       tags:
         - bookings
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters:
         - name: day
           description: A date string, return bookings from this day on including the day
@@ -172,7 +178,7 @@ paths:
       tags:
         - bookings
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       requestBody:
         description: The data of the new booking, bookingday, starttime and activity are mandatory, endtime and comment are optional
         required: true
@@ -197,7 +203,7 @@ paths:
       tags:
         - bookings
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters:
         - name: bookingId
           description: id of the requested booking
@@ -228,7 +234,7 @@ paths:
       tags:
         - bookings
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters: 
         - name: bookingId
           description: id of the booking to change
@@ -262,7 +268,7 @@ paths:
       tags:
         - bookings
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters:
         - name: bookingId
           description: id of the requested booking
@@ -296,7 +302,7 @@ paths:
       tags:
         - bookings
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters:
         - name: bookingId
           description: id of the booking to change
@@ -326,7 +332,7 @@ paths:
       tags:
         - analysis
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       parameters: 
         - name: analyzer
           description: Name of the requested analyzer
@@ -422,7 +428,7 @@ paths:
       tags:
         - users
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       responses:
         '200':
           description: The user data, except password and answer
@@ -441,7 +447,7 @@ paths:
       tags:
         - users
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       requestBody:
         description: The data to change for the user, all fields are optional, at least one has to be changed
         required: true
@@ -463,7 +469,7 @@ paths:
       summary: Delete a user and all its data from the database
       operationId: deleteUser
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       tags:
         - users
       responses:
@@ -483,7 +489,7 @@ paths:
       tags:
         - backup
       security:
-        - BasicAuth: [ admin ]
+        - BearerAuth: [ admin ]
       responses:
         '200':
           description: A backup of the database data as zip file
@@ -505,7 +511,7 @@ paths:
       tags:
         - backup
       security:
-        - BasicAuth: [ admin ]
+        - BearerAuth: [ admin ]
       requestBody:
         description: The data to restore in the database
         required: true
@@ -734,7 +740,8 @@ components:
           format: password
 
   securitySchemes:
-    BasicAuth:
+    BearerAuth:
       type: http
-      scheme: basic
+      scheme: bearer
+      bearerFormat: JWT
       
