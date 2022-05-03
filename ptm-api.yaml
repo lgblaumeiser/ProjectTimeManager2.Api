@@ -421,7 +421,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /users/authenticate
+  /users/authenticate:
     post:
       summary: Authenticate a registered user by password, returns a jwt token
       operationId: authenticateUser
