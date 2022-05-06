@@ -57,7 +57,7 @@ paths:
               $ref: '#/components/schemas/NewActivityData'
       responses:
         '201':
-          $ref: '#/components/responses/Created'
+          description: Activity successfully created
           content:
             application/json:
               schema:
@@ -125,7 +125,7 @@ paths:
               $ref: '#/components/schemas/ChangeActivityData'
       responses:
         '200':
-          $ref: '#/components/responses/SuccessfullyChanged'
+          description: Activity successfully changed
           content:
             application/json:
               schema:
@@ -196,7 +196,7 @@ paths:
               $ref: '#/components/schemas/BookingData'
       responses:
         '201':
-          $ref: '#/components/responses/Created'
+          description: Booking successfully created
           content:
             application/json:
               schema:
@@ -264,7 +264,7 @@ paths:
               $ref: '#/components/schemas/BookingData'
       responses:
         '200':
-          $ref: '#/components/responses/SuccessfullyChanged'
+          description: Booking successfully changed
           content:
             application/json:
               schema:
@@ -302,7 +302,7 @@ paths:
               $ref: '#/components/schemas/AddBreak'
       responses:
         '201':
-          $ref: '#/components/responses/Created'
+          description: Break created successfully
           content:
             application/json:
               schema:
@@ -408,7 +408,7 @@ paths:
               $ref: '#/components/schemas/AuthenticationData'
       responses:
         '201':
-          $ref: '#/components/responses/Created'
+          description: User successfully created
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -430,7 +430,7 @@ paths:
               $ref: '#/components/schemas/AuthenticationData'
       responses:    
         '204':
-          description: '#/components/responses/SuccessfullyChanged'
+          description: Password successfully changed
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -551,10 +551,6 @@ paths:
 
 components:
   responses:
-    Created:
-      description: Resource created successfully
-    SuccessfullyChanged:
-      description: Resource changed successfully
     SuccessfullyDeleted:
       description: Resource deleted successfully
     NoContent:
