@@ -58,6 +58,10 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -88,12 +92,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Activity'
+        '204':
+          $ref: '#/components/responses/NoContent'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -120,8 +124,12 @@ paths:
             schema:
               $ref: '#/components/schemas/ChangeActivityData'
       responses:
-        '204':
+        '200':
           $ref: '#/components/responses/SuccessfullyChanged'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -189,6 +197,10 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -219,12 +231,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Booking'
+        '204':
+          $ref: '#/components/responses/NoContent'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -251,8 +263,12 @@ paths:
             schema:
               $ref: '#/components/schemas/BookingData'
       responses:
-        '204':
+        '200':
           $ref: '#/components/responses/SuccessfullyChanged'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -287,6 +303,10 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookings'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -385,7 +405,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUserData'
+              $ref: '#/components/schemas/AuthenticationData'
       responses:
         '201':
           $ref: '#/components/responses/Created'
@@ -395,29 +415,41 @@ paths:
           $ref: '#/components/responses/InternalError'
 
     put:
-      summary: Reset the password of the user, authentication provided by answer to stored question stored in the password field of the given request body
-      operationId: resetPassword
+      summary: Change the password of the user, authentication provided either by token of user or of an admin
+      operationId: changePassword
       tags:
         - users
+      security:
+        - BearerAuth: []
       requestBody:
-        description: Username and answer for the user that wants a resetted password
+        description: Username and password of the user
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AuthenticationData"
+              $ref: '#/components/schemas/AuthenticationData'
       responses:    
-        '200':
-          description: The users password has been changed, the new password is returned
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
-                format: password
+        '204':
+          description: '#/components/responses/SuccessfullyChanged'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '403':
-          description: Answer does not match to the username
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete a user and all its data from the database
+      operationId: deleteUser
+      security:
+        - BearerAuth: []
+      tags:
+        - users
+      responses:
+        '204':
+          $ref: '#/components/responses/SuccessfullyDeleted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -444,65 +476,6 @@ paths:
                 format: password
         '400':
           $ref: '#/components/responses/BadRequest'
-        '403':
-          description: Given user password combination is not known
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /users/profile:
-    get:
-      summary: Get the email and question of a user, reference done via authenticated user
-      operationId: getUser
-      tags:
-        - users
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: The user data, except password and answer
-          content: 
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-    patch:
-      summary: Change properties of the user, except username, this is unchangeable
-      operationId: changeUser
-      tags:
-        - users
-      security:
-        - BearerAuth: []
-      requestBody:
-        description: The data to change for the user, all fields are optional, at least one has to be changed
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ChangeUserData"
-      responses:
-        '204':
-          $ref: '#/components/responses/SuccessfullyChanged'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-    delete:
-      summary: Delete a user and all its data from the database
-      operationId: deleteUser
-      security:
-        - BearerAuth: []
-      tags:
-        - users
-      responses:
-        '204':
-          $ref: '#/components/responses/SuccessfullyDeleted'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -579,7 +552,7 @@ paths:
 components:
   responses:
     Created:
-      description: Resource created successfully, return the location uri of the created resource in response header
+      description: Resource created successfully
     SuccessfullyChanged:
       description: Resource changed successfully
     SuccessfullyDeleted:
@@ -715,49 +688,6 @@ components:
         items:
           type: string
 
-    User:
-      type: object
-      properties:
-        username:
-          type: string
-        email:
-          type: string
-          format: email
-        question:
-          type: string
-
-    NewUserData:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-          format: password
-        email:
-          type: string
-          format: email
-        question:
-          type: string
-        answer:
-          type: string
-          format: password
-    
-    ChangeUserData:
-      type: object
-      properties:
-        password:
-          type: string
-          format: password
-        email:
-          type: string
-          format: email
-        question:
-          type: string
-        answer:
-          type: string
-          format: password
-    
     AuthenticationData:
       type: object
       properties:
@@ -772,4 +702,3 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      
