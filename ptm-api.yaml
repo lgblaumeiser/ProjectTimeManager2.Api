@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020, 2021, 2022 Lars Geyer-Blaumeiser <lars@lgblaumeiser.de>
+# SPDX-License-Identifier: MIT
 openapi: 3.0.0
 info:
   title: Project Time Manager API
@@ -94,8 +96,6 @@ paths:
                 $ref: '#/components/schemas/Activity'
         '204':
           $ref: '#/components/responses/NoContent'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
