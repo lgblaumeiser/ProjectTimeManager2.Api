@@ -147,7 +147,7 @@ paths:
           content:
             application/json:
               schema:
-              $ref: '#/components/schemas/TokenResult'
+                $ref: '#/components/schemas/TokenResult'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -166,9 +166,10 @@ paths:
       responses:
         '200':
           description: Refreshed access and refresh token
+          content:
             application/json:
               schema:
-              $ref: '#/components/schemas/TokenResult'
+                $ref: '#/components/schemas/TokenResult'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -360,11 +361,7 @@ components:
       type: array
       items:
         type: string
-        examples:
-          normal:
-            value: "tool_user"
-          admin:
-            value: "tool_admin"
+        example: [ "tool_user", "tool_admin" ]
     
   securitySchemes:
     BearerAuth:
