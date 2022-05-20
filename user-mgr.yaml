@@ -1,0 +1,373 @@
+# SPDX-FileCopyrightText: 2022 Lars Geyer-Blaumeiser <lars@lgblaumeiser.de>
+# SPDX-License-Identifier: MIT
+openapi: 3.0.3
+info:
+  title: User Manager API
+  description: Description of a user manager API
+  version: 1.0.0
+  contact:
+    name: lgblaumeiser
+    email: lars@lgblaumeiser.de
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:19749
+    description: User manager currently runs typically locally on the host machine
+
+paths:
+
+# Users API
+  
+  /users:
+    post:
+      summary: Register a new user, needs no authentication, user will get usermanager_user role
+      operationId: registerUser
+      tags:
+        - users
+      requestBody:
+        description: Fields username and password are required, roles is optional
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUserData'
+      responses:
+        '201':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Change the password of the user, authentication provided either by token of user or of an admin
+      operationId: changePassword
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Fields username and password are required, password contains new password
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthData'
+      responses:    
+        '200':
+          description: Password successfully changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      summary: Change roles of user, admin roles can only be changed by an admin
+      operationId: changeRoles
+      security:
+        - BearerAuth: []
+      tags:
+        - users
+      requestBody:
+        description: Field username is optional, if not given, token id is used, newroles and obsroles are optional, but should in total contain at least one element
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRoleData'
+      responses:
+        '200':
+          description: Roles successfully changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      
+    delete:
+      summary: Delete a user and all its data from the database
+      operationId: deleteUser
+      security:
+        - BearerAuth: [ admin ]
+      tags:
+        - users
+      requestBody:
+        description: Field username is required
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimpleUserData'
+      responses:
+        '204':
+          $ref: '#/components/responses/SuccessfullyDeleted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/authenticate:
+    post:
+      summary: Authenticate a registered user by password, returns an access token valid for 30 minutes and a refresh token valid for 2 weeks
+      operationId: authenticateUser
+      tags:
+        - users
+      requestBody:
+        description: Field username and password are required, rest is ignored
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthData'
+      responses:
+        '200':
+          description: User authenticated, required access token and refresh token returned
+          content:
+            application/json:
+              schema:
+              $ref: '#/components/schemas/TokenResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/token:
+    get:
+      summary: With the use of the old access token or the refresh token aquire a new access token, refresh token will be restarted as well
+      operationId: refreshToken
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - users
+      responses:
+        '200':
+          description: Refreshed access and refresh token
+            application/json:
+              schema:
+              $ref: '#/components/schemas/TokenResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Invalidate refresh token, in case token has been leaked and the usage has to be prevented, uses user, password authentication of the user or an admin token
+      operationId: invalidateToken
+      security:
+        - BearerAuth: [ admin ]
+      tags:
+        - users
+      requestBody:
+        description: Field username is required, either password is given or the request has an access token from an admin
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthData'
+      responses:
+        '204':
+          description: The refresh token has been invalidated
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# Infrastructure API
+
+  /backup:
+    get:
+      summary: Create a backup of the database
+      operationId: backup
+      tags:
+        - infrastructure
+      security:
+        - BearerAuth: [ admin ]
+      responses:
+        '200':
+          description: A backup of the database data as zip byte stream
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Restore a backup and replace existing database, old date will be deleted
+      operationId: restore
+      tags:
+        - infrastructure
+      security:
+        - BearerAuth: [ admin ]
+      requestBody:
+        description: The data to restore in the database
+        required: true
+        content:
+          application/zip:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '204':
+          description: Database restored successfully, old data deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AdminAccess'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  
+  /licenses:
+    get:
+      summary: Returns the attribution information on the used Open Source Software
+      operationId: license
+      tags:
+        - infrastructure
+      responses:
+        '200':
+          description: The attribution information as text
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  responses:
+    SuccessfullyDeleted:
+      description: Resource deleted successfully
+    Unauthorized:
+      description: User not authorized
+    BadRequest:
+      description: Bad data given to the request, returns an adequate error message
+      content:
+        text/plain; charset=utf-8:
+          schema:
+            type: string
+            example: "Request body did not contain valid data, request failed"
+    AdminAccess:
+      description: Admin access needed for this operation
+    InternalError:
+      description: The request resulted in an unexpected exception, returns an adequate error message
+      content:
+        text/plain; charset=utf-8:
+          schema:
+            type: string
+            example: "An io error occured, request failed"
+
+  schemas:
+    AuthData:
+      type: object
+      properties:
+        username:
+          $ref: "#/components/schemas/Username"
+        password:
+          $ref: "#/components/schemas/Password"
+
+    NewUserData:
+      properties:
+        username:
+          $ref: "#/components/schemas/Username"
+        password:
+          $ref: "#/components/schemas/Password"
+        roles:
+          $ref: "#/components/schemas/RoleList"
+
+    SimpleUserData:
+      type: object
+      properties:
+        username:
+          $ref: "#/components/schemas/Username"
+
+    ChangeRoleData:
+      type: object
+      properties:
+        username:
+          $ref: "#/components/schemas/Username"
+        newroles:
+          $ref: "#/components/schemas/RoleList"
+        obsroles:
+          $ref: "#/components/schemas/RoleList"
+
+    UserId:
+      type: object
+      properties:
+        username:
+          $ref: "#/components/schemas/Username"
+
+    TokenResult:
+      type: object
+      properties:
+        access_token:
+          $ref: "#/components/schemas/Token"
+        refresh_token:
+          $ref: "#/components/schemas/Token"
+    
+    Username:
+      type: string
+      description: An unique identifier for the user
+      example: "my_username"
+
+    Password:
+      type: string
+      description: The password for the user
+      format: password    
+      example: "$0MeP@sswOrD"
+    
+    Token:
+      type: string
+      description: A valid token
+      format: byte
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+    RoleList:
+      type: array
+      items:
+        type: string
+        examples:
+          normal:
+            value: "tool_user"
+          admin:
+            value: "tool_admin"
+    
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
