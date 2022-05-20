@@ -1,0 +1,7 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2022 Lars Geyer-Blaumeiser <lars@lgblaumeiser.de>
+# SPDX-License-Identifier: MIT
+./openapi-generator-cli \
+    validate \
+    -i ../../ProjectTimeManager2.Api/user-mgr.yaml \
+    --recommend
