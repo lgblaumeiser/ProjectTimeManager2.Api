@@ -105,7 +105,7 @@ paths:
           $ref: '#/components/responses/InternalError'
       
     delete:
-      summary: Delete a user and all its data from the database
+      summary: Delete a user from the database
       operationId: deleteUser
       security:
         - BearerAuth: [ admin ]
