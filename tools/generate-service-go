@@ -1,0 +1,10 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2025 Lars Geyer-Blaumeiser <lars@lgblaumeiser.de>
+# SPDX-License-Identifier: MIT
+./openapi-generator-cli \
+    generate \
+    -g go-server \
+    -i ../../ProjectTimeManager2.Api/ptm-api.yaml \
+    -o ../../ProjectTimeManager2.Go/ \
+    --additional-properties=featureCORS=true,packageName=ptm,sourceFolder=internal
+    
