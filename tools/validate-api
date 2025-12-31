@@ -3,5 +3,5 @@
 # SPDX-License-Identifier: MIT
 ./openapi-generator-cli \
     validate \
-    -i ../../ProjectTimeManager2.Api/user-mgr.yaml \
+    -i ../../ProjectTimeManager2.Api/ptm-api.yaml \
     --recommend
