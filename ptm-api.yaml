@@ -7,7 +7,7 @@ info:
   version: 2.0.0
 
 servers:
-  - url: http://localhost:27727
+  - url: http://localhost:8080
     description: Project time manager currently runs typically locally on the host machine
 
 paths:
@@ -193,7 +193,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BookingData'
+              $ref: '#/components/schemas/NewBookingData'
       responses:
         '201':
           description: Booking successfully created
@@ -261,7 +261,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BookingData'
+              $ref: '#/components/schemas/ChangedBookingData'
       responses:
         '200':
           description: Booking successfully changed
@@ -302,7 +302,7 @@ paths:
               $ref: '#/components/schemas/AddBreak'
       responses:
         '201':
-          description: Break created successfully
+          description: Break created successfully, returned is the new booking after the break
           content:
             application/json:
               schema:
@@ -391,109 +391,19 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-# User API
-  
-  /users:
-    post:
-      summary: Register a new user, needs no authentication
-      operationId: registerUser
-      tags:
-        - users
-      requestBody:
-        description: The data of the new user
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthenticationData'
-      responses:
-        '201':
-          description: User successfully created
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-    put:
-      summary: Change the password of the user, authentication provided either by token of user or of an admin
-      operationId: changePassword
-      tags:
-        - users
-      security:
-        - BearerAuth: []
-      requestBody:
-        description: Username and password of the user
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthenticationData'
-      responses:    
-        '204':
-          description: Password successfully changed
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-    delete:
-      summary: Delete a user and all its data from the database
-      operationId: deleteUser
-      security:
-        - BearerAuth: []
-      tags:
-        - users
-      responses:
-        '204':
-          $ref: '#/components/responses/SuccessfullyDeleted'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /users/authenticate:
-    post:
-      summary: Authenticate a registered user by password, returns a jwt token
-      operationId: authenticateUser
-      tags:
-        - users
-      requestBody:
-        description: User and password of the user
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthenticationData'
-      responses:
-        '200':
-          description: User authenticated, required jwt token returned
-          content:
-            text/plain; charset=utf-8:
-              schema:
-                type: string
-                format: password
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
 # Infrastructure API
 
   /backup:
     get:
-      summary: Create a backup of the database
+      summary: Create a backup of the bookings of the user
       operationId: backup
       tags:
         - backup
       security:
-        - BearerAuth: [ admin ]
+        - BearerAuth: [ ]
       responses:
         '200':
-          description: A backup of the database data as zip file
+          description: A backup of the database data as a zipped array of Booking objects
           content:
             application/zip:
               schema:
@@ -502,17 +412,17 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/AdminAccess'
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
 
     put:
-      summary: Restore a backup and replace existing database
+      summary: Restore a backup and replace existing bookings for the user
       operationId: restore
       tags:
         - backup
       security:
-        - BearerAuth: [ admin ]
+        - BearerAuth: [ ]
       requestBody:
         description: The data to restore in the database
         required: true
@@ -529,7 +439,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/AdminAccess'
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
   
@@ -565,14 +475,8 @@ components:
             type: string
     Forbidden:
       description: The requested resource does not belong to the authenticated user
-    AdminAccess:
-      description: Admin access needed for this operation
     InternalError:
-      description: The request resulted in an unexpected exception, returns the error message of the server
-      content:
-        text/plain; charset=utf-8:
-          schema:
-            type: string
+      description: The request resulted in an unexpected error
       
   schemas:
     Activity:
@@ -594,6 +498,7 @@ components:
     
     NewActivityData:
       type: object
+      required: [ projectName, projectId, activityName, activityId ]
       properties:
         projectName:
           type: string
@@ -639,12 +544,30 @@ components:
           type: string
           format: time
         activity:
+          type: string
+        comment:
+          type: string
+
+    NewBookingData:
+      type: object
+      required: [ bookingday, starttime, activity ]
+      properties:
+        bookingday:
+          type: string
+          format: date
+        starttime:
+          type: string
+          format: time
+        endtime:
+          type: string
+          format: time
+        activity:
           type: integer
           format: int64
         comment:
           type: string
 
-    BookingData:
+    ChangedBookingData:
       type: object
       properties:
         bookingday:
@@ -669,6 +592,7 @@ components:
 
     AddBreak:
       type: object
+      required: [ breakstart ]
       properties:
         breakstart:
           type: string
@@ -683,15 +607,6 @@ components:
         type: array
         items:
           type: string
-
-    AuthenticationData:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-          format: password
 
   securitySchemes:
     BearerAuth:
