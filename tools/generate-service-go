@@ -6,5 +6,5 @@
     -g go-server \
     -i ../../ProjectTimeManager2.Api/ptm-api.yaml \
     -o ../../ProjectTimeManager2.Go/ \
-    --additional-properties=featureCORS=true,packageName=ptm,sourceFolder=internal
+    --additional-properties=featureCORS=true,packageName=service,sourceFolder=internal
     
