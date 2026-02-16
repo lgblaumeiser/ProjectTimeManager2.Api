@@ -102,7 +102,7 @@ paths:
           $ref: '#/components/responses/InternalError'
 
     patch:
-      summary: Change an existing activity, if the resource belongs to the user
+      summary: Change an existing activity, if the resource belongs to the user and the change is allowed
       operationId: changeActivity
       tags:
         - activities
@@ -130,6 +130,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      summary: Delete an activity, if the resource belongs to the user and the activity can be deleted
+      operationId: deleteBooking
+      tags:
+        - activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: activityId
+          description: id of the activity to delete
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          $ref: '#/components/responses/SuccessfullyDeleted'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -325,7 +351,7 @@ paths:
         - BearerAuth: []
       parameters:
         - name: bookingId
-          description: id of the booking to change
+          description: id of the booking to delete
           in: path
           required: true
           schema:
